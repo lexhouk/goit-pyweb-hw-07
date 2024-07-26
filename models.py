@@ -49,7 +49,7 @@ class Subject(Base):
     teacher_id: Mapped[int] = Column.foreign('teacher')
 
 
-class Grades(Base):
+class Grade(Base):
     __tablename__ = 'grades'
     id: Mapped[int] = Column.primary()
     value: Mapped[int] = mapped_column(SmallInteger, nullable=False)
