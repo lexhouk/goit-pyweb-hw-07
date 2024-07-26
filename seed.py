@@ -2,10 +2,8 @@ from random import randint
 from re import sub
 
 from faker import Faker
-from sqlalchemy.engine import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from main import uri
+from connect import session
 
 # Each model should be imported to use them from global definitions.
 from models import Grade, Group, Student, Subject, Teacher
@@ -86,9 +84,6 @@ def fill(session, name: str) -> None:
 
 
 def main() -> None:
-    engine = create_engine(uri(), echo=True)
-    Session = sessionmaker(engine)
-    session = Session()
     [fill(session, name) for name in TABLES.keys()]
     session.close()
 

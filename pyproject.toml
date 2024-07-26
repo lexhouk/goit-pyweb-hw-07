@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "goit-pyweb-hw-07"
 version = "0.1.0"
-description = "Create a PostgreSQL database, and fill it with random data."
+description = "Fill a PostgreSQL database with random data and display statistics based on it."
 authors = ["Oleksandr Horbatiuk <oleksandr.v.horbatiuk@gmail.com>"]
 readme = "README.md"
 package-mode = false
