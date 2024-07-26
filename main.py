@@ -1,46 +1,71 @@
 from sqlalchemy import CHAR, create_engine, ForeignKey, SmallInteger, String
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import declarative_base, Mapped, mapped_column, \
+    MappedColumn
 
 Base = declarative_base()
 
 
+class Column:
+    @staticmethod
+    def primary() -> MappedColumn:
+        return mapped_column(primary_key=True)
+
+    @staticmethod
+    def foreign(name: str) -> MappedColumn:
+        return mapped_column(ForeignKey(name + 's.id',
+                                        ondelete='CASCADE',
+                                        onupdate='CASCADE'))
+
+    @staticmethod
+    def data(size: int = 100, fixed: bool = False) -> MappedColumn:
+        return mapped_column(CHAR(size) if fixed else String(size),
+                             nullable=False,
+                             unique=True)
+
+
 class Group(Base):
     __tablename__ = 'groups'
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(CHAR(5), unique=True)
+    id: Mapped[int] = Column.primary()
+    name: Mapped[str] = Column.data(5, True)
 
 
 class Student(Base):
     __tablename__ = 'students'
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), unique=True)
-    group_id: Mapped[int] = mapped_column(ForeignKey('groups.id'))
+    id: Mapped[int] = Column.primary()
+    name: Mapped[str] = Column.data()
+    group_id: Mapped[int] = Column.foreign('group')
 
 
 class Teacher(Base):
     __tablename__ = 'teachers'
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), unique=True)
+    id: Mapped[int] = Column.primary()
+    name: Mapped[str] = Column.data()
 
 
 class Subject(Base):
     __tablename__ = 'subjects'
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), unique=True)
-    teacher_id: Mapped[int] = mapped_column(ForeignKey('teachers.id'))
+    id: Mapped[int] = Column.primary()
+    name: Mapped[str] = Column.data()
+    teacher_id: Mapped[int] = Column.foreign('teacher')
 
 
 class Grades(Base):
     __tablename__ = 'grades'
-    id: Mapped[int] = mapped_column(primary_key=True)
-    value: Mapped[int] = mapped_column(SmallInteger)
-    student_id: Mapped[int] = mapped_column(ForeignKey('students.id'))
-    subject_id: Mapped[int] = mapped_column(ForeignKey('subjects.id'))
+    id: Mapped[int] = Column.primary()
+    value: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    student_id: Mapped[int] = Column.foreign('student')
+    subject_id: Mapped[int] = Column.foreign('subject')
 
 
 def main() -> None:
-    engine = create_engine('sqlite:///db.sqlite', echo=True)
+    engine = create_engine(
+        'postgresql://postgres:qwerty123@localhost:5432/postgres',
+        echo=True,
+        pool_size=5,
+        max_overflow=0
+        )
 
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     Base.metadata.bind = engine
 
