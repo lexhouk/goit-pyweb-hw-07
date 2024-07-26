@@ -57,16 +57,17 @@ class Grades(Base):
     subject_id: Mapped[int] = Column.foreign('subject')
 
 
+def uri() -> str:
+    with open('.secret', encoding='utf-8') as file:
+        return f'postgresql://postgres:{file.read()}@localhost:5432/postgres'
+
+
 def main() -> None:
-    engine = create_engine(
-        'postgresql://postgres:qwerty123@localhost:5432/postgres',
-        echo=True,
-        pool_size=5,
-        max_overflow=0
-        )
+    engine = create_engine(uri(), echo=True, pool_size=5, max_overflow=0)
 
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
+
     Base.metadata.bind = engine
 
 
