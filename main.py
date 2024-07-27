@@ -103,11 +103,24 @@ def update_action(**options: dict) -> None:
     except Exception as error:
         raise error
     else:
-        print(f'A {model} has been updated successfully.')
+        print(f'The {model} has been updated successfully.')
 
 
-def remove_action() -> None:
-    ...
+def remove_action(**options: dict) -> None:
+    id = options['id']
+    model: str = options['model']
+    cls = globals()[model]
+
+    if not session.query(cls).filter(cls.id == id).one_or_none():
+        raise ValueError(f'The {model.lower()} is already deleted.')
+
+    try:
+        session.delete(session.query(cls).filter(cls.id == id).one())
+        session.commit()
+    except Exception as error:
+        raise error
+    else:
+        print(f'The {model} has been deleted successfully.')
 
 
 def main() -> None:
