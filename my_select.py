@@ -278,6 +278,8 @@ def main() -> None:
         print(f' Task #{id} '.center(80, '-'))
         pprint(globals()[f'select_{id}']().all())
 
+    session.close()
+
 
 if __name__ == '__main__':
     main()

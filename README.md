@@ -13,4 +13,5 @@ $ python seed.py
 
 ```bash
 $ python my_select.py
+$ python main.py -a list -m Teacher
 ```

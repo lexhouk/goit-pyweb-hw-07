@@ -85,6 +85,7 @@ def fill(session, name: str) -> None:
 
 def main() -> None:
     [fill(session, name) for name in TABLES.keys()]
+
     session.close()
 
 
