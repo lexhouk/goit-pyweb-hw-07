@@ -83,8 +83,27 @@ def list_action(**options: dict) -> None:
     pprint(query.all())
 
 
-def update_action() -> None:
-    ...
+def update_action(**options: dict) -> None:
+    name = options['name']
+    id = options['id']
+    model: str = options['model']
+    cls = globals()[model]
+    model = model.lower()
+    column = cls.__dict__['id']
+
+    if not session.query(cls).filter(column == id).one_or_none():
+        raise ValueError(f'The {model} is absent.')
+
+    entity = session.query(cls).filter(column == id).one()
+    setattr(entity, TABLES[model + 's'].get('column', 'name'), name)
+
+    try:
+        session.add(entity)
+        session.commit()
+    except Exception as error:
+        raise error
+    else:
+        print(f'A {model} has been updated successfully.')
 
 
 def remove_action() -> None:
