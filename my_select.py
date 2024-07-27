@@ -219,6 +219,56 @@ def select_10(teacher: int = 5, student: int = 2):
     )
 
 
+def select_11(teacher: int = 5, student: int = 1):
+    '''
+    SELECT t.name, s.name, ROUND(AVG(g.value), 1)
+    FROM teachers t
+    JOIN subjects d ON d.teacher_id = t.id
+    JOIN grades g ON g.subject_id = d.id
+    JOIN students s ON s.id = g.student_id
+    WHERE t.id = 5 AND s.id = 1;
+    '''
+    return (
+        session
+        .query(Teacher.name, Student.name, grade())
+        .select_from(Teacher)
+        .join(Subject)
+        .join(Grade)
+        .join(Student)
+        .filter(and_(Teacher.id == teacher, Student.id == student))
+        .group_by(Teacher.id)
+        .group_by(Student.id)
+    )
+
+
+def select_12(subject: int = 1, group: int = 1):
+    '''
+    SELECT d.name, g.name, s.name, m.value
+    FROM subjects d
+    JOIN grades m ON m.subject_id = d.id
+    JOIN students s ON s.id = m.student_id
+    JOIN groups g ON g.id = s.group_id
+    WHERE d.id = 1 AND g.id = 1
+    GROUP BY s.id
+    ORDER BY s.name, m.id DESC;
+    '''
+    return (
+        session
+        .query(Subject.name, Group.name, Student.name, Grade.value)
+        .select_from(Subject)
+        .join(Grade)
+        .join(Student)
+        .join(Group)
+        .filter(and_(Subject.id == subject, Group.id == group))
+        .group_by(Subject.id)
+        .group_by(Group.id)
+        .group_by(Grade.id)
+        .group_by(Student.id)
+        .order_by(Student.name)
+        .order_by(desc(Grade.id))
+    )
+
+
 def main() -> None:
     ids = [int(result.group(1))
            for name in globals().keys()
