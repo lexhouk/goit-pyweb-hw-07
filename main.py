@@ -8,12 +8,44 @@ from seed import TABLES
 from models import Grade, Group, Student, Subject, Teacher
 
 
-def create_action() -> None:
-    ...
+def create_action(**options: dict) -> None:
+    model: str = options['model']
+    relations = TABLES[model.lower() + 's'].get('relations', ())
+
+    if len(relations) > 1:
+        raise ValueError('Unsupported model.')
+
+    name = options['name']
+    cls = globals()[model]
+
+    if session.query(cls).filter(eval(f'{model}.name') == name).one_or_none():
+        raise ValueError('The name is already used.')
+
+    fields = {'name': name}
+
+    if relations:
+        id = options['id']
+        relation = relations[0][:-1]
+        sub_model = relation.title()
+        sub_cls = globals()[sub_model]
+        column = eval(f'{sub_model}.id')
+
+        if not session.query(sub_cls).filter(column == id).one_or_none():
+            raise ValueError(f'The {relation} is absent.')
+
+        fields[relation + '_id'] = options['id']
+
+    try:
+        session.add(cls(**fields))
+        session.commit()
+    except Exception as error:
+        raise error
+    else:
+        print(f'A new {model.lower()} has been added successfully.')
 
 
-def list_action(model: str) -> list:
-    match model:
+def list_action(**options: dict) -> None:
+    match options['model']:
         case 'Grade':
             query = (
                 session
@@ -48,7 +80,7 @@ def list_action(model: str) -> list:
             query = session.query(Teacher.id, Teacher.name) \
                 .order_by(Teacher.name)
 
-    return query.all()
+    pprint(query.all())
 
 
 def update_action() -> None:
@@ -76,11 +108,18 @@ def main() -> None:
     parser.add_argument('-n', '--name')
     parser.add_argument('-i', '--id', type=int)
 
-    arguments = vars(parser.parse_args())
+    arguments = {key: value
+                 for key, value in vars(parser.parse_args()).items()
+                 if value is not None}
 
-    pprint(globals()[arguments['action'] + '_action'](arguments['model']))
-
-    session.close()
+    try:
+        globals()[arguments['action'] + '_action'](**arguments)
+    except KeyError as error:
+        print(f'The {str(error)[1:-1]} is mandatory.')
+    except ValueError as error:
+        print(error)
+    else:
+        session.close()
 
 
 if __name__ == '__main__':
